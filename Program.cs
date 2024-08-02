@@ -9,7 +9,7 @@ App.Open<MainForm>();
 
 public class MainForm : View
 {
-    string input = "texto";
+    string input = "";
     RectangleF inputArea;
     PointF[] pts;
 
@@ -30,6 +30,12 @@ public class MainForm : View
 
             if (e == Input.Back && input.Length > 0)
                 input = input[0..^1];
+            
+            if (e == Input.Tab)
+                input += ".";
+            
+            if (e == Input.Enter)
+                Iteract();
 
             if (e == Input.Escape)
                 App.Close();
@@ -47,6 +53,30 @@ public class MainForm : View
                 inputArea.Height / 2 * MathF.Sign(MathF.Sin(a)) * MathF.Pow(Math.Abs(MathF.Sin(a)), 0.1f) + centerY
             ))
             .ToArray();
+    }
+
+    async void Iteract()
+    {
+        if (input == "rcv")
+        {
+            input = await Server.Recive();
+            return;
+        }
+
+        if (input == "get")
+        {
+            var publicIp = await Server.LoadIP();
+            input = publicIp.ToString();
+            return;
+        }
+
+        var data = input.Split(" ");
+        if (data.Length < 4 || data[0] != "to" || data[2] != "snd")
+            return;
+        
+        var ip = data[1];
+        var message = string.Join(" ", data[3..]);
+        await Server.Send(message, ip);
     }
 
     protected override void OnRender(IGraphics g)
